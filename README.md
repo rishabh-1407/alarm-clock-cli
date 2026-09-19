@@ -1,60 +1,197 @@
+I'd structure it like this:
 # Alarm Clock CLI
 
-A small, production-minded Python CLI alarm clock built for the Senior Software Engineer take-home exercise.
+A Python command-line alarm clock built as a time-boxed software
+engineering exercise.
+
+## Problem
+
+Build an alarm clock that allows users to create and manage alarms
+through a CLI. The application should continue checking scheduled
+alarms while remaining responsive to user commands.
 
 ## Requirements
 
-- Python 3.10+
+- Create alarms using HH:MM
+- Optional alarm labels
+- List alarms
+- Enable/disable alarms
+- Cancel alarms
+- Snooze alarms
+- Trigger alarms at the scheduled time
+- Reschedule recurring alarms
+- Validate user input
+- Gracefully handle application shutdown
+
+## Constraints
+
+- Python
+- CLI only
 - No database
 - No web UI
-- Standard library for the application itself
-- `pytest` only for tests
+- Time-boxed implementation
 
-## Design decisions
+## Design
 
-The prompt intentionally leaves requirements open. With a 30-minute build constraint, the goal is a reliable MVP rather than a large feature set.
+The application is separated into three main concerns:
 
-### Core behavior
+### CLI
 
-- Multiple alarms can be created in one running process.
-- Alarms use 24-hour `HH:MM` format.
-- Alarms can be listed, cancelled, enabled, disabled, and snoozed.
-- The scheduler runs in a daemon thread so the interactive CLI remains responsive.
-- Alarm state is intentionally in memory. Restarting the process clears alarms because persistence was not requested and a database was explicitly excluded.
-- A triggered alarm is rescheduled for the next day, making it a daily alarm.
-- Snooze overrides the next trigger time without changing the alarm's configured daily time.
+Responsible for parsing commands and presenting output.
 
-## Run
+### AlarmService
 
-From the repository root:
+Contains alarm lifecycle and scheduling logic.
+
+### Alarm Model
+
+Represents the state of an individual alarm.
+
+This separation keeps business logic independent from terminal
+interaction and makes it possible to test the service directly.
+
+## Running
+
+### Requirements
+
+Python 3.x
+
+### Install
 
 ```bash
-python -m alarm_clock
-```
+python3 -m pip install --user "pytest>=8,<9"
+Run tests
+python3 -m pytest
+Run application
+python3 -m alarm_clock
+Example
+alarm> set 18:30 Team meeting
+Alarm set for 18:30 - Team meeting
 
-Example:
-
-```text
-$ python -m alarm_clock
-Alarm Clock started. Type 'help' for commands.
-alarm> set 07:30 Morning workout
-Created alarm 1 for 07:30 (Morning workout)
-alarm> set 09:15 Daily standup
-Created alarm 2 for 09:15 (Daily standup)
 alarm> list
-ID  TIME   STATUS    LABEL
-1   07:30  ON        Morning workout
-2   09:15  ON        Daily standup
-```
+1. 18:30 - Team meeting - enabled
 
-For a quick trigger test, set an alarm a minute or two ahead of the current time.
+alarm> disable 1
+Alarm disabled
 
-## Test
+alarm> enable 1
+Alarm enabled
 
-```bash
-python -m pytest -q
-```
+alarm> cancel 1
+Alarm cancelled
+Testing
+The business logic is covered using pytest.
+Tests cover alarm creation, cancellation, enable/disable behaviour,
+snoozing, and scheduling-related behaviour.
+Design Trade-offs
+The application intentionally uses in-memory state because the
+exercise explicitly excludes a database and is time-boxed.
+A background scheduler is used so that waiting for CLI input does
+not prevent alarms from firing.
+Further productionisation could introduce persistent storage,
+timezone handling, richer notifications, and more sophisticated
+scheduling.
 
-## What I would add next
+That's much stronger.
 
-If requirements expanded beyond the exercise, I'd add persistent storage behind a repository interface, timezone-aware scheduling, recurring schedules beyond daily alarms, structured logging, and integration tests around clock/time boundaries.
+---
+
+# 3. Engineering Notes
+
+This is where you demonstrate the thinking the recruiter explicitly requested.
+
+I'd keep `ENGINEERING_NOTES.md`.
+
+Add sections like:
+
+```markdown
+# Engineering Notes
+
+## Requirement Refinement
+
+The initial requirement was intentionally underspecified.
+
+I interpreted "alarm clock" as requiring:
+
+- Alarm creation
+- Alarm management
+- Alarm triggering
+- Recurring behaviour
+- Snoozing
+- Input validation
+
+I deliberately avoided persistence because the exercise explicitly
+prohibited a database.
+
+## Key Assumptions
+
+1. Alarm times use the local system timezone.
+2. Alarms recur daily after firing.
+3. Alarms are stored in memory.
+4. If an alarm time has already passed today, the next occurrence
+   is tomorrow.
+5. Terminal output is sufficient for notification.
+6. Second-level precision is unnecessary for this exercise.
+
+## Architecture
+
+CLI
+ ↓
+AlarmService
+ ↓
+Alarm Model
+
+The CLI is responsible for interaction while AlarmService owns
+business behaviour.
+
+## Concurrency Decision
+
+The CLI needs to wait for user input while alarms must continue
+to execute independently.
+
+Therefore the scheduler runs separately from the command input loop.
+
+This prevents blocking terminal input from preventing scheduled
+alarms from firing.
+
+## AI Usage
+
+AI was used to:
+
+- Refine ambiguous requirements
+- Explore implementation approaches
+- Generate initial implementation suggestions
+- Review edge cases
+- Suggest tests
+- Identify potential design problems
+
+AI-generated code was reviewed and tested rather than accepted
+without validation.
+
+## Validation
+
+I manually tested:
+
+- Alarm creation
+- Listing
+- Cancellation
+- Enable/disable
+- Snooze
+- Alarm triggering
+- Invalid input
+
+Automated tests were also executed using pytest.
+
+## Out of Scope
+
+The following were intentionally excluded:
+
+- Database persistence
+- Web UI
+- Authentication
+- Distributed scheduling
+- Timezone management
+- External notification providers
+
+These were excluded to keep the implementation aligned with the
+exercise constraints and time limit.
