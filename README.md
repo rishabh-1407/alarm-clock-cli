@@ -1,4 +1,3 @@
-I'd structure it like this:
 # Alarm Clock CLI
 
 A Python command-line alarm clock built as a time-boxed software
@@ -60,11 +59,14 @@ Python 3.x
 
 ```bash
 python3 -m pip install --user "pytest>=8,<9"
-Run tests
+
+### **Run tests**
 python3 -m pytest
-Run application
+
+### **Run application**
 python3 -m alarm_clock
-Example
+
+### **Example**
 alarm> set 18:30 Team meeting
 Alarm set for 18:30 - Team meeting
 
@@ -79,11 +81,13 @@ Alarm enabled
 
 alarm> cancel 1
 Alarm cancelled
-Testing
+
+### **Testing**
 The business logic is covered using pytest.
 Tests cover alarm creation, cancellation, enable/disable behaviour,
 snoozing, and scheduling-related behaviour.
-Design Trade-offs
+
+### **Design Trade-offs**
 The application intentionally uses in-memory state because the
 exercise explicitly excludes a database and is time-boxed.
 A background scheduler is used so that waiting for CLI input does
